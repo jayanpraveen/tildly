@@ -10,9 +10,11 @@ type Server struct {
 	Mux *mux.Router
 }
 
-func NewServer() *Server {
-	s := &Server{}
-	return s
+func NewServer(m *mux.Router) (*Server, error) {
+	s := &Server{
+		Mux: m,
+	}
+	return s, nil
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

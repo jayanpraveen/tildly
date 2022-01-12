@@ -20,12 +20,14 @@ func NewRouter(s *server.Server) *router {
 
 func (rtr *router) RunRouter() error {
 	r := rtr.srv.Mux
+	sr := r.PathPrefix("/api").Subrouter()
 
 	us := service.NewUrlService()
 	uh := NewUrlHandler(us)
 
 	r.HandleFunc("/", uh.handleIndex())
-	// ...
+	sr.HandleFunc("/{longUrl}", uh.handleLongUrl())
+	r.HandleFunc("/{hash}", uh.handleShortUrl())
 
 	r.Use(middleware.LoggingMiddleware)
 

@@ -26,10 +26,11 @@ func (rtr *router) RunRouter() error {
 	uh := NewUrlHandler(us)
 
 	r.HandleFunc("/", uh.handleIndex())
-	sr.HandleFunc("/{longUrl}", uh.handleLongUrl())
+	sr.HandleFunc("/", uh.handleLongUrl()).Queries("longUrl", "{longUrl}")
 	r.HandleFunc("/{hash}", uh.handleShortUrl())
 
 	r.Use(middleware.LoggingMiddleware)
+	sr.Use(middleware.ValidateUrlMiddleware)
 
 	return http.ListenAndServe(":8080", r)
 }

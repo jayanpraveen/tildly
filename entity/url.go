@@ -6,6 +6,6 @@ type Url struct {
 	CreatedAt string `json:"createdAt"`
 }
 type UrlStore interface {
-	SaveUrl(u Url) error
-	GetUrlByHash(hash string) (Url, error)
+	SaveUrl(u *Url) error
+	GetUrlByHash(hash string) (*Url, error)
 }

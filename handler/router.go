@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/jayanpraveen/tildly/datastore"
 	"github.com/jayanpraveen/tildly/middleware"
 	"github.com/jayanpraveen/tildly/server"
 	"github.com/jayanpraveen/tildly/service"
@@ -22,7 +23,10 @@ func (rtr *router) RunRouter() error {
 	r := rtr.srv.Mux
 	sr := r.PathPrefix("/api").Subrouter()
 
-	us := service.NewUrlService()
+	// todo
+	rd := datastore.DialRedisCache()
+	ch := service.NewCacheRepo(rd)
+	us := service.NewUrlService(ch)
 	uh := NewUrlHandler(us)
 
 	r.HandleFunc("/", uh.handleIndex())

@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	m "github.com/jayanpraveen/tildly/entity"
 )
@@ -17,14 +18,18 @@ func NewUrlService(uc UrlCache) *UrlService {
 }
 
 // !Change this
-func (s *UrlService) SaveUrl(u *m.Url) error {
+func (s *UrlService) SaveUrl(longUrl string) error {
 	hash := "dQw4w9WgXcQ"
 	fmt.Println("hash: ", hash)
 
-	u.Hash = hash
+	u := m.Url{
+		Hash:      hash,
+		LongUrl:   longUrl,
+		CreatedAt: time.Now().Format("2006-01-02 15:04:05.000000"),
+	}
 
 	// Save to cache, db...
-	s.cache.SetLongUrl(u)
+	s.cache.SetLongUrl(&u)
 
 	return nil
 

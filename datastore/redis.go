@@ -7,7 +7,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func DialRedisCache() *cache.Cache {
+func DialRedisClient() *cache.Cache {
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",

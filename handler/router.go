@@ -24,7 +24,7 @@ func (rtr *router) RunRouter() error {
 	sr := r.PathPrefix("/api").Subrouter()
 
 	// todo
-	rd := datastore.DialRedisCache()
+	rd := datastore.DialRedisClient()
 	ch := service.NewCacheRepo(rd)
 	us := service.NewUrlService(ch)
 	uh := NewUrlHandler(us)

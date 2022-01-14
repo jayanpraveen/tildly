@@ -6,11 +6,6 @@ import (
 	m "github.com/jayanpraveen/tildly/entity"
 )
 
-type UrlCache interface {
-	SetLongUrl(url *m.Url) error
-	GetLongUrl(hash string) (*m.Url, error)
-}
-
 type UrlService struct {
 	cache UrlCache
 }
@@ -25,6 +20,8 @@ func NewUrlService(uc UrlCache) *UrlService {
 func (s *UrlService) SaveUrl(u *m.Url) error {
 	hash := "dQw4w9WgXcQ"
 	fmt.Println("hash: ", hash)
+
+	u.Hash = hash
 
 	// Save to cache, db...
 	s.cache.SetLongUrl(u)

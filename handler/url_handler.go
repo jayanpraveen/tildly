@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jayanpraveen/tildly/entity"
 	"github.com/jayanpraveen/tildly/service"
 )
 
@@ -25,18 +26,29 @@ func (s *UrlHandler) handleIndex() http.HandlerFunc {
 func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
+		u := &entity.Url{
+			LongUrl: vars["longUrl"],
+		}
+		s.UrlService.SaveUrl(u)
+
 		fmt.Fprintln(w, "Handle Long Url", vars)
 	}
 }
 
 func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		vars := mux.Vars(r)
 
 		if vars["hash"] == "api" {
 			return
 		}
 
-		fmt.Fprintln(w, "Handle Short Url", vars)
+		u, err := s.UrlService.GetUrlByHash(vars["hash"])
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Fprintln(w, "Handle Short Url", u.LongUrl)
 	}
 }

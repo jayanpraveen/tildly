@@ -8,12 +8,17 @@ import (
 )
 
 func isValidUrl(longUrl string) bool {
+	if longUrl == "" {
+		return false
+	}
+
 	if u, err := url.Parse(longUrl); err == nil && u.Scheme != "" && u.Host != "" {
 		return true
 	}
 	return false
 }
 
+// The url validation middleware
 func ValidateUrlMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -23,6 +28,5 @@ func ValidateUrlMiddleware(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
-
 	})
 }

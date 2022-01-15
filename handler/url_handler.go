@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -46,9 +47,15 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 
 		u, err := s.UrlService.GetUrlByHash(vars["hash"])
 		if err != nil {
-			panic(err)
+			notFoundTemplate(w, r)
+			return
 		}
 
-		fmt.Fprintln(w, "Handle Short Url", u.LongUrl)
+		http.Redirect(w, r, u.LongUrl, http.StatusPermanentRedirect)
 	}
+}
+
+func notFoundTemplate(w http.ResponseWriter, r *http.Request) {
+	t := template.Must(template.ParseFiles("./handler/NotFound.html"))
+	t.Execute(w, nil)
 }

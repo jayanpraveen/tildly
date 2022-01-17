@@ -1,11 +1,17 @@
 <div align="center">
 	<h1>
 		<div>tildly</div>
-		<img src="./assets/tildly-small.png" alt="tildly" width="480">
+		<img src="./.gitlab/assets/tildly-small.png" alt="tildly" width="480">
 	</h1>
 </div>
 
 ## Run
+
+```makefile
+make run
+```
+
+## Test
 
 ```makefile
 make run
@@ -17,7 +23,7 @@ make run
 make build
 ```
 
-## Start redis with redis.conf
+## Start redis with [redis.conf](./redis.conf)
 
 ```makefile
 make redis

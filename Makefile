@@ -1,4 +1,4 @@
-.PHONY: clean test build tildly
+.PHONY: clean test build tidy tildly
 BINARY_NAME=tildly
 
 all: test build tildly
@@ -9,7 +9,7 @@ tidy: go.mod
 test:
 	go test ./...
 
-build:
+build: main.go
 	go build -o bin/${BINARY_NAME} main.go
 
 tildly:

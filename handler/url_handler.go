@@ -4,17 +4,29 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/jayanpraveen/tildly/service"
 )
 
 type UrlHandler struct {
-	*service.UrlService
+	urs service.UrlRepository
 }
 
-func NewUrlHandler(us *service.UrlService) *UrlHandler {
-	return &UrlHandler{UrlService: us}
+func NewUrlHandler(us service.UrlRepository) *UrlHandler {
+	return &UrlHandler{urs: us}
+}
+
+func isValidUrl(longUrl string) error {
+	if longUrl == "" {
+		return fmt.Errorf("")
+	}
+
+	if u, err := url.Parse(longUrl); err == nil && u.Scheme != "" && u.Host != "" {
+		return nil
+	}
+	return fmt.Errorf("")
 }
 
 func (s *UrlHandler) handleIndex() http.HandlerFunc {
@@ -25,14 +37,27 @@ func (s *UrlHandler) handleIndex() http.HandlerFunc {
 
 func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 
-		err := s.UrlService.SaveUrl(vars["longUrl"])
-		if err != nil {
+		type PostUrl struct {
+			LongUrl string `json:"longUrl"`
+		}
+
+		var u PostUrl
+
+		if err := service.DecodeJson(&u, r.Body); err != nil {
 			panic(err)
 		}
 
-		fmt.Fprintln(w, "Handle Long Url", vars)
+		if err := isValidUrl(u.LongUrl); err != nil {
+			panic(err)
+		}
+
+		if err := s.urs.SaveUrl(u.LongUrl); err != nil {
+			panic(err)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprint(w, "Url created!")
 	}
 }
 
@@ -45,7 +70,7 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 			return
 		}
 
-		u, err := s.UrlService.GetUrlByHash(vars["hash"])
+		u, err := s.urs.GetUrlByHash(vars["hash"])
 		if err != nil {
 			notFoundTemplate(w, r)
 			return

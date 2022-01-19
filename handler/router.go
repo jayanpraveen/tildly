@@ -23,18 +23,16 @@ func (rtr *router) RunRouter() error {
 	r := rtr.srv.Mux
 	sr := r.PathPrefix("/api").Subrouter()
 
-	// todo
 	rd := datastore.DialRedisClient()
 	ch := service.NewCacheRepo(rd)
 	us := service.NewUrlService(ch)
 	uh := NewUrlHandler(us)
 
 	r.HandleFunc("/", uh.handleIndex())
-	sr.HandleFunc("/", uh.handleLongUrl()).Queries("longUrl", "{longUrl}")
+	sr.HandleFunc("/longUrl", uh.handleLongUrl()).Methods(http.MethodPost)
 	r.HandleFunc("/{hash}", uh.handleShortUrl())
 
 	r.Use(middleware.LoggingMiddleware)
-	sr.Use(middleware.ValidateUrlMiddleware)
 
 	return http.ListenAndServe(":8080", r)
 }

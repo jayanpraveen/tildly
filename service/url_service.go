@@ -11,6 +11,11 @@ type UrlService struct {
 	cache UrlCache
 }
 
+type UrlRepository interface {
+	SaveUrl(longUrl string) error
+	GetUrlByHash(hash string) (*m.Url, error)
+}
+
 func NewUrlService(uc UrlCache) *UrlService {
 	return &UrlService{
 		cache: uc,
@@ -21,6 +26,7 @@ func NewUrlService(uc UrlCache) *UrlService {
 func (s *UrlService) SaveUrl(longUrl string) error {
 	hash := "dQw4w9WgXcQ"
 	fmt.Println("hash: ", hash)
+	fmt.Println("longUrl: ", longUrl)
 
 	u := m.Url{
 		Hash:      hash,

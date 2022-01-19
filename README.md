@@ -5,24 +5,6 @@
 	</h1>
 </div>
 
-## Run
-
-```makefile
-make run
-```
-
-## Test
-
-```makefile
-make run
-```
-
-## Build
-
-```makefile
-make build
-```
-
 ## Start redis with [redis.conf](./redis.conf)
 
 ```makefile

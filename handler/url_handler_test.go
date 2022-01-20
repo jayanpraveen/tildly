@@ -1,55 +1,55 @@
 package handler
 
 import (
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 
 	m "github.com/jayanpraveen/tildly/entity"
-	"github.com/jayanpraveen/tildly/service"
 )
 
-type HandleTester func(method string, url string, params url.Values) *httptest.ResponseRecorder
+type HandleTester func(method string, url string, body string) *httptest.ResponseRecorder
 
-func generateHandleTester(t *testing.T, handleFunc http.Handler) HandleTester {
-	return func(method string, url string, params url.Values) *httptest.ResponseRecorder {
+func generateHandleTester(t *testing.T, handleFunc http.Handler, expSC int, expBody string) HandleTester {
+	return func(method string, url string, body string) *httptest.ResponseRecorder {
 
 		if url == "" {
 			url = "/"
 		}
 
-		r, err := http.NewRequest(method, url, strings.NewReader(params.Encode()))
-
-		data, _ := ioutil.ReadAll(r.Body)
-		t.Log(string(data))
-
-		if err != nil {
-			t.Errorf("%v", err)
+		if method == "" {
+			method = http.MethodGet
 		}
 
-		w := httptest.NewRecorder()
+		res := httptest.NewRecorder()
+		req := httptest.NewRequest(method, url, strings.NewReader(body))
 
-		handleFunc.ServeHTTP(w, r)
+		// Calling the given handler
+		handleFunc.ServeHTTP(res, req)
 
-		return w
+		// Check http status
+		assertEquals(t, expSC, res.Code)
 
+		// Check output
+		assertEquals(t, expBody, res.Body.String())
+
+		return res
 	}
 }
 
-func assertEquals(comp string, exp interface{}, act interface{}) error {
+/*
+ * This functions follows the convention similar to JUnit's `assertEquals` method.
+ * The exp or expected is the value the user expects from the program (the known one).
+ * The act or actual is the value the program produces (the unknown one).
+ */
+func assertEquals(t *testing.T, exp interface{}, act interface{}) {
 	if exp != act {
-		return fmt.Errorf(comp, "Expected: %v, Actual: %v", exp, act)
+		t.Errorf("Expected: %v, Actual: %v", exp, act)
 	}
-	return nil
 }
 
-type MockService struct {
-	ch service.UrlCache
-}
+type MockService struct{}
 
 func (m *MockService) SaveUrl(longUrl string) error {
 	return nil
@@ -61,31 +61,20 @@ func (m *MockService) GetUrlByHash(hash string) (*m.Url, error) {
 
 func Test_handleLongUrl(t *testing.T) {
 
-	t.Run("Can register valid url", func(t *testing.T) {
-		// url := m.Url{Hash: "XikHs", LongUrl: "https://go.dev", CreatedAt: "NOW"}
-
-		actual := "Url created!"
-
-		us := &MockService{ch: &service.CacheRepo{}}
-		uh := NewUrlHandler(us)
-
-		req := httptest.NewRequest(http.MethodPost, "/api/longUrl", strings.NewReader(`{"longUrl": "http://go.dev/docs"}`))
-		res := httptest.NewRecorder()
-
+	t.Run("register valid url", func(t *testing.T) {
+		srv := &MockService{}
+		uh := NewUrlHandler(srv)
 		h := uh.handleLongUrl()
-		h(res, req)
 
-		err := assertEquals("longUrl Hand", res.Code, http.StatusCreated)
-		if err != nil {
-			t.Error(err)
-		}
+		expSC := http.StatusCreated
+		expBody := "Url created!"
 
-		if res.Body.String() != actual {
-			t.Errorf("expected %q got %q", res.Body.String(), actual)
-		}
+		method := http.MethodPost
+		url := "/api/longUrl"
+		body := `{"longUrl": "http://go.dev/docs"}`
+
+		gh := generateHandleTester(t, h, expSC, expBody)
+		gh(method, url, body)
 
 	})
-
-	// todo: perform invalid test for this handler
-
 }

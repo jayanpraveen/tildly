@@ -72,12 +72,8 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 
 		vars := mux.Vars(r)
 
-		if vars["hash"] == "api" {
-			return
-		}
-
 		u, err := s.urs.GetUrlByHash(vars["hash"])
-		if err != nil {
+		if err != nil || vars["hash"] == "api" {
 			w.WriteHeader(http.StatusNotFound)
 			notFoundTemplate(w, r)
 			return

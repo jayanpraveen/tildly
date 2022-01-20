@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -122,6 +123,12 @@ func Test_handleLongUrl(t *testing.T) {
 
 		// Check response output
 		assertEquals(t, expBody, res.Body.String())
+
+		// when given empty url
+		body = `{"longUrl": ""}`
+		res = gh(method, url, body)
+		assertEquals(t, expBody, res.Body.String())
+
 	})
 
 	t.Run("post invalid JSON", func(t *testing.T) {
@@ -219,4 +226,11 @@ func Test_handleShortUrl(t *testing.T) {
 		gh := generateHandleTester(t, h, expSC)
 		gh(method, url, body)
 	})
+}
+
+// test fixture
+func init() {
+	if err := os.Chdir("./testdata"); err != nil {
+		panic(err)
+	}
 }

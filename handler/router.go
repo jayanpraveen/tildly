@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/jayanpraveen/tildly/datastore"
 	"github.com/jayanpraveen/tildly/middleware"
 	"github.com/jayanpraveen/tildly/server"
@@ -19,7 +20,7 @@ func NewRouter(s *server.Server) *router {
 	}
 }
 
-func (rtr *router) RunRouter() error {
+func (rtr *router) RunRouter() *mux.Router {
 	r := rtr.srv.Mux
 	sr := r.PathPrefix("/api").Subrouter()
 
@@ -34,5 +35,5 @@ func (rtr *router) RunRouter() error {
 
 	r.Use(middleware.LoggingMiddleware)
 
-	return http.ListenAndServe(":8080", r)
+	return r
 }

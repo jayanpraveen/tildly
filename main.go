@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -24,5 +25,7 @@ func run() error {
 
 	rtr := handler.NewRouter(srv)
 
-	return rtr.RunRouter()
+	router := rtr.RunRouter()
+
+	return http.ListenAndServe(":8080", router)
 }

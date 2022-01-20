@@ -11,14 +11,11 @@ import (
 )
 
 type UrlHandler struct {
-	service.UrlRepository
+	urs service.UrlRepository
 }
 
-// note: using `service.UrlRepository` instead of directly unsing `service.UrlService` to make tests/mocks easier
 func NewUrlHandler(us service.UrlRepository) *UrlHandler {
-	return &UrlHandler{
-		UrlRepository: us,
-	}
+	return &UrlHandler{urs: us}
 }
 
 func isValidUrl(longUrl string) error {
@@ -55,7 +52,7 @@ func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 			panic(err)
 		}
 
-		if err := s.SaveUrl(u.LongUrl); err != nil {
+		if err := s.urs.SaveUrl(u.LongUrl); err != nil {
 			panic(err)
 		}
 
@@ -73,7 +70,7 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 			return
 		}
 
-		u, err := s.GetUrlByHash(vars["hash"])
+		u, err := s.urs.GetUrlByHash(vars["hash"])
 		if err != nil {
 			notFoundTemplate(w, r)
 			return

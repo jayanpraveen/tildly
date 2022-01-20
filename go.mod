@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/google/go-cmp v0.5.6
 	github.com/gorilla/mux v1.8.0
 )
 

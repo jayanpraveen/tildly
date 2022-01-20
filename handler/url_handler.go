@@ -45,19 +45,25 @@ func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 		var u PostUrl
 
 		if err := service.DecodeJson(&u, r.Body); err != nil {
-			panic(err)
+			w.WriteHeader(http.StatusBadRequest)
+			service.SetError(http.StatusBadRequest, "Not a proper JSON format", w)
+			return
 		}
 
 		if err := isValidUrl(u.LongUrl); err != nil {
-			panic(err)
+			w.WriteHeader(http.StatusBadRequest)
+			service.SetError(http.StatusBadRequest, "Not a valid URL", w)
+			return
 		}
 
 		if err := s.urs.SaveUrl(u.LongUrl); err != nil {
-			panic(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			service.SetError(http.StatusInternalServerError, "Internal server error", w)
+			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, "Url created!")
+		fmt.Fprint(w, "tildly url created!")
 	}
 }
 
@@ -72,6 +78,7 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 
 		u, err := s.urs.GetUrlByHash(vars["hash"])
 		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
 			notFoundTemplate(w, r)
 			return
 		}

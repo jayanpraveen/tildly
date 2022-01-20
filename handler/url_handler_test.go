@@ -1,17 +1,19 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	m "github.com/jayanpraveen/tildly/entity"
 )
 
 type HandleTester func(method string, url string, body string) *httptest.ResponseRecorder
 
-func generateHandleTester(t *testing.T, handleFunc http.Handler, expSC int, expBody string) HandleTester {
+func generateHandleTester(t *testing.T, handleFunc http.Handler, expSC int) HandleTester {
 	return func(method string, url string, body string) *httptest.ResponseRecorder {
 
 		if url == "" {
@@ -31,9 +33,6 @@ func generateHandleTester(t *testing.T, handleFunc http.Handler, expSC int, expB
 		// Check http status
 		assertEquals(t, expSC, res.Code)
 
-		// Check output
-		assertEquals(t, expBody, res.Body.String())
-
 		return res
 	}
 }
@@ -44,37 +43,180 @@ func generateHandleTester(t *testing.T, handleFunc http.Handler, expSC int, expB
  * The act or actual is the value the program produces (the unknown one).
  */
 func assertEquals(t *testing.T, exp interface{}, act interface{}) {
-	if exp != act {
-		t.Errorf("Expected: %v, Actual: %v", exp, act)
+	if !cmp.Equal(exp, act) {
+		t.Errorf(" Expected: %v, Actual: %v string", exp, act)
 	}
 }
 
-type MockService struct{}
+type MockService struct {
+	SaveUrlFunc      func(longUrl string) error
+	GetUrlByHashFunc func(hash string) (*m.Url, error)
+}
 
 func (m *MockService) SaveUrl(longUrl string) error {
-	return nil
+	return m.SaveUrlFunc(longUrl)
 }
 
 func (m *MockService) GetUrlByHash(hash string) (*m.Url, error) {
-	return nil, nil
+	return m.GetUrlByHashFunc(hash)
+}
+
+func Test_handleIndex(t *testing.T) {
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	uh := UrlHandler{}
+	h := uh.handleIndex()
+	h(res, req)
+
+	// Check http status
+	assertEquals(t, http.StatusOK, res.Code)
+
+	// Check response output
+	assertEquals(t, []byte("tildly !\n"), res.Body.Bytes())
 }
 
 func Test_handleLongUrl(t *testing.T) {
 
-	t.Run("register valid url", func(t *testing.T) {
-		srv := &MockService{}
+	t.Run("post valid url", func(t *testing.T) {
+		srv := &MockService{
+			SaveUrlFunc: func(longUrl string) error {
+				return nil
+			},
+		}
 		uh := NewUrlHandler(srv)
 		h := uh.handleLongUrl()
 
 		expSC := http.StatusCreated
-		expBody := "Url created!"
+		expBody := "tildly url created!"
 
 		method := http.MethodPost
 		url := "/api/longUrl"
 		body := `{"longUrl": "http://go.dev/docs"}`
 
-		gh := generateHandleTester(t, h, expSC, expBody)
+		gh := generateHandleTester(t, h, expSC)
+		res := gh(method, url, body)
+
+		// Check response output
+		assertEquals(t, expBody, res.Body.String())
+
+	})
+
+	t.Run("post invalid url", func(t *testing.T) {
+		srv := &MockService{
+			SaveUrlFunc: func(longUrl string) error {
+				return nil
+			},
+		}
+		uh := NewUrlHandler(srv)
+		h := uh.handleLongUrl()
+
+		expSC := http.StatusBadRequest
+		expBody := fmt.Sprintln(`{"status":400,"msg":"Not a valid URL"}`) // Using `ln` becuase Json.NewDecoder adds \n at eof while marshlling
+
+		method := http.MethodPost
+		url := "/api/longUrl"
+		body := `{"longUrl": "htt/go.dev/docs"}`
+
+		gh := generateHandleTester(t, h, expSC)
+		res := gh(method, url, body)
+
+		// Check response output
+		assertEquals(t, expBody, res.Body.String())
+	})
+
+	t.Run("post invalid JSON", func(t *testing.T) {
+		srv := &MockService{
+			SaveUrlFunc: func(longUrl string) error {
+				return nil
+			},
+		}
+		uh := NewUrlHandler(srv)
+		h := uh.handleLongUrl()
+
+		expSC := http.StatusBadRequest
+		expBody := fmt.Sprintln(`{"status":400,"msg":"Not a proper JSON format"}`)
+
+		method := http.MethodPost
+		url := "/api/longUrl"
+		body := `{"longUrl" "htt/go.dev/docs"}` // Invalid JSON: missing ':' in longUrl
+
+		gh := generateHandleTester(t, h, expSC)
+		res := gh(method, url, body)
+
+		// Check response output
+		assertEquals(t, expBody, res.Body.String())
+	})
+
+	t.Run("returns interal server error", func(t *testing.T) {
+		srv := &MockService{
+			SaveUrlFunc: func(longUrl string) error {
+				return fmt.Errorf("Failed to save url")
+			},
+		}
+
+		uh := NewUrlHandler(srv)
+		h := uh.handleLongUrl()
+
+		expSC := http.StatusInternalServerError
+		expBody := fmt.Sprintln(`{"status":500,"msg":"Internal server error"}`)
+
+		method := http.MethodPost
+		url := "/api/longUrl"
+		body := `{"longUrl": "http://go.dev/docs"}`
+
+		gh := generateHandleTester(t, h, expSC)
+		res := gh(method, url, body)
+
+		// Check response output
+		assertEquals(t, expBody, res.Body.String())
+	})
+
+}
+
+func Test_handleShortUrl(t *testing.T) {
+
+	t.Run("short url exist", func(t *testing.T) {
+		srv := &MockService{
+			GetUrlByHashFunc: func(hash string) (*m.Url, error) {
+				return &m.Url{
+					Hash:      "XikHsqW",
+					LongUrl:   "https://go.dev",
+					CreatedAt: "2009-11-10 23:00:00.000000",
+				}, nil
+			},
+		}
+
+		uh := NewUrlHandler(srv)
+		h := uh.handleShortUrl()
+
+		expSC := http.StatusPermanentRedirect
+
+		method := http.MethodGet
+		url := "/XikHsqW"
+		body := ""
+
+		gh := generateHandleTester(t, h, expSC)
 		gh(method, url, body)
 
+	})
+
+	t.Run("short url doesn't exist", func(t *testing.T) {
+		srv := &MockService{
+			GetUrlByHashFunc: func(hash string) (*m.Url, error) {
+				return nil, fmt.Errorf("short url not found")
+			},
+		}
+
+		uh := NewUrlHandler(srv)
+		h := uh.handleShortUrl()
+
+		expSC := http.StatusNotFound
+
+		method := http.MethodGet
+		url := "/XikHsqW"
+		body := ""
+
+		gh := generateHandleTester(t, h, expSC)
+		gh(method, url, body)
 	})
 }

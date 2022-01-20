@@ -5,7 +5,10 @@ import (
 	"io"
 )
 
+func EncodeJson(v interface{}, w io.Writer) error {
+	return json.NewEncoder(w).Encode(v)
+}
+
 func DecodeJson(v interface{}, r io.Reader) error {
-	d := json.NewDecoder(r)
-	return d.Decode(v)
+	return json.NewDecoder(r).Decode(v)
 }

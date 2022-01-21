@@ -6,7 +6,6 @@ all: test build tildly
 tidy: go.mod
 	go mod tidy -v
 
-# go test ./... -v -coverprofile=coverage.out && go tool cover -html=coverage.out
 test:
 	go test ./... -v -coverprofile=coverage.out
 	go tool cover -html=coverage.out -o coverage.html

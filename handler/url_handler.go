@@ -20,7 +20,7 @@ func NewUrlHandler(us service.UrlRepository) *UrlHandler {
 
 func isValidUrl(longUrl string) error {
 	if longUrl == "" {
-		return fmt.Errorf("")
+		return fmt.Errorf("empty url given")
 	}
 
 	if u, err := url.Parse(longUrl); err == nil && u.Scheme != "" && u.Host != "" {
@@ -31,6 +31,7 @@ func isValidUrl(longUrl string) error {
 
 func (s *UrlHandler) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "tildly !")
 	}
 }

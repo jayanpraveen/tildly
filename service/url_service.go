@@ -22,9 +22,10 @@ func NewUrlService(uc UrlCache) *UrlService {
 	}
 }
 
-// !Change this
 func (s *UrlService) SaveUrl(longUrl string) error {
-	hash := "dQw4w9WgXcQ"
+
+	// !Change this
+	hash := "QWgXcQ"
 	fmt.Println("hash: ", hash)
 	fmt.Println("longUrl: ", longUrl)
 

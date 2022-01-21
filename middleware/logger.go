@@ -39,7 +39,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		log.SetPrefix("[INFO]: ")
-		log.Printf("\nURI: %v, \nDuration: %v, \nStatus: %v, \nSize: %v\n\n",
-			r.RequestURI, duration, responseData.status, responseData.size)
+		log.Printf("\nURI: %v, \nDuration: %v, \nStatus: %v, \nSize: %v, \nMethod: %v\n\n",
+			r.RequestURI, duration, lrw.responseData.status, responseData.size, r.Method)
 	})
 }

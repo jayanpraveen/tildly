@@ -45,21 +45,21 @@ func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 
 		var u PostUrl
 
-		if err := service.DecodeJson(&u, r.Body); err != nil {
+		if err := DecodeJson(&u, r.Body); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			service.SetError(http.StatusBadRequest, "Not a proper JSON format", w)
+			SetError(http.StatusBadRequest, "Not a proper JSON format", w)
 			return
 		}
 
 		if err := isValidUrl(u.LongUrl); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			service.SetError(http.StatusBadRequest, "Not a valid URL", w)
+			SetError(http.StatusBadRequest, "Not a valid URL", w)
 			return
 		}
 
 		if err := s.urs.SaveUrl(u.LongUrl); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			service.SetError(http.StatusInternalServerError, "Internal server error", w)
+			SetError(http.StatusInternalServerError, "Internal server error", w)
 			return
 		}
 

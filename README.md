@@ -10,3 +10,7 @@
 ```makefile
 make redis
 ```
+
+## Staring a etcd local multi-member cluster
+
+- [local multi-member cluster](https://etcd.io/docs/v3.5/dev-guide/local_cluster)

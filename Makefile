@@ -1,4 +1,5 @@
-.PHONY: clean test build tidy tildly
+.PHONY: clean test build tidy tildly etcd
+
 BINARY_NAME=tildly
 
 all: test build tildly
@@ -7,7 +8,8 @@ tidy: go.mod
 	go mod tidy -v
 
 test:
-	go test ./... -v -coverprofile=coverage.out
+	go test -v -coverpkg=./... -coverprofile=coverage.out ./...
+	go tool cover -func coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 	open ./coverage.html 
 
@@ -38,3 +40,11 @@ clean:
 	
 redis: redis.conf
 	redis-server ./redis.conf
+
+etcd-list:
+	etcdctl --write-out=table --endpoints=localhost:2379 member list
+
+etcd: Procfile 
+	cd etcd
+	echo "etcd: starting local multi-member cluster with 3 nodes"
+	goreman -f Procfile start

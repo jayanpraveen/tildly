@@ -1,6 +1,8 @@
-package service
+package handler
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 )
 
@@ -21,4 +23,12 @@ func SetError(status int, msg string, w http.ResponseWriter) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func EncodeJson(v interface{}, w io.Writer) error {
+	return json.NewEncoder(w).Encode(v)
+}
+
+func DecodeJson(v interface{}, r io.Reader) error {
+	return json.NewDecoder(r).Decode(v)
 }

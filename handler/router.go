@@ -29,6 +29,11 @@ func (rtr *router) RunRouter() *mux.Router {
 	us := service.NewUrlService(ch)
 	uh := NewUrlHandler(us)
 
+	// **** check count
+	etcd := datastore.NewEtcd()
+	r.HandleFunc("/count", service.DisplayCount(etcd))
+	// ****
+
 	r.HandleFunc("/", uh.handleIndex())
 	sr.HandleFunc("/longUrl", uh.handleLongUrl()).Methods(http.MethodPost)
 	r.HandleFunc("/{hash}", uh.handleShortUrl())

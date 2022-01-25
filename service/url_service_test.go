@@ -37,7 +37,7 @@ func TestGetLongUrl(t *testing.T) {
 		},
 	}
 
-	us := NewUrlService(&mcr)
+	us := NewUrlService(&mcr, nil)
 
 	u, err := us.GetUrlByHash(hash)
 

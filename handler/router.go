@@ -26,13 +26,8 @@ func (rtr *router) RunRouter() *mux.Router {
 
 	rd := datastore.DialRedisClient()
 	ch := service.NewCacheRepo(rd)
-	us := service.NewUrlService(ch)
+	us := service.NewUrlService(ch, datastore.NewEtcd())
 	uh := NewUrlHandler(us)
-
-	// **** check count
-	etcd := datastore.NewEtcd()
-	r.HandleFunc("/count", service.DisplayCount(etcd))
-	// ****
 
 	r.HandleFunc("/", uh.handleIndex())
 	sr.HandleFunc("/longUrl", uh.handleLongUrl()).Methods(http.MethodPost)

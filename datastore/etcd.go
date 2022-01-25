@@ -26,16 +26,16 @@ type EtcdStore struct {
 	V3  *clientv3.Client
 	COD Coordinator
 
-	rangeKey      string
-	rangeCountKey string
+	RangeCountKey string
 
+	rangeKey        string
 	lock            string
 	rangeLockSwitch string
 }
 
 func (e *EtcdStore) init() {
 	e.rangeKey = "/range"
-	e.rangeCountKey = e.rangeKey + "/counter"
+	e.RangeCountKey = e.rangeKey + "/counter"
 	e.rangeLockSwitch = e.rangeKey + "/lock"
 }
 
@@ -71,7 +71,7 @@ func (e *EtcdStore) setUpKeys() {
 
 	go e.watchOnLock()
 
-	e.KV.Put(e.CTX, e.rangeCountKey, "0")
+	e.KV.Put(e.CTX, e.RangeCountKey, "0")
 
 	log.Println("V3 initzed required keys")
 
@@ -94,5 +94,5 @@ func (e *EtcdStore) GetNextRange() (int, int) {
 }
 
 func (e *EtcdStore) Commit(head int) {
-	e.KV.Put(e.CTX, e.rangeCountKey, fmt.Sprint(head))
+	e.KV.Put(e.CTX, e.RangeCountKey, fmt.Sprint(head))
 }

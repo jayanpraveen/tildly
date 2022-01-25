@@ -1,14 +1,18 @@
 package service
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"time"
 
+	"github.com/jayanpraveen/tildly/datastore"
 	m "github.com/jayanpraveen/tildly/entity"
 )
 
 type UrlService struct {
 	cache UrlCache
+	ac    *atomicCounter
 }
 
 type UrlRepository interface {
@@ -16,18 +20,22 @@ type UrlRepository interface {
 	GetUrlByHash(hash string) (*m.Url, error)
 }
 
-func NewUrlService(uc UrlCache) *UrlService {
+func NewUrlService(uc UrlCache, es *datastore.EtcdStore) *UrlService {
 	return &UrlService{
 		cache: uc,
+		ac:    NewAtomicCounter(es),
 	}
+}
+
+func (s *UrlService) generateHash(longUrl string) (hash string) {
+	md5hash := md5.New()
+	md5hash.Write([]byte(fmt.Sprintf("%d_%s", s.ac.next(), longUrl)))
+	return hex.EncodeToString(md5hash.Sum(nil))[:6]
 }
 
 func (s *UrlService) SaveUrl(longUrl string) error {
 
-	// !Change this
-	hash := "QWgXcQ"
-	fmt.Println("hash: ", hash)
-	fmt.Println("longUrl: ", longUrl)
+	hash := s.generateHash(longUrl)
 
 	u := m.Url{
 		Hash:      hash,

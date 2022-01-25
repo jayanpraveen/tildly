@@ -1,0 +1,6 @@
+.gitlab
+README.md
+.git
+*.out
+coverage.html
+HELP.md

@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jayanpraveen/tildly/handler"
-	"github.com/jayanpraveen/tildly/server"
 )
 
 func main() {
@@ -23,7 +22,7 @@ func run() error {
 	port := flag.String("port", "8080", "http port")
 	flag.Parse()
 
-	srv, err := server.NewServer(mux.NewRouter())
+	srv, err := handler.NewServer(mux.NewRouter())
 	if err != nil {
 		return err
 	}

@@ -4,15 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
-)
-
-const (
-	LOCK   = "ON"
-	UNLOCK = "OFF"
 )
 
 type Coordinator interface {
@@ -27,16 +21,6 @@ type EtcdStore struct {
 	COD Coordinator
 
 	RangeCountKey string
-
-	rangeKey        string
-	lock            string
-	rangeLockSwitch string
-}
-
-func (e *EtcdStore) init() {
-	e.rangeKey = "/range"
-	e.RangeCountKey = e.rangeKey + "/counter"
-	e.rangeLockSwitch = e.rangeKey + "/lock"
 }
 
 func NewEtcd() *EtcdStore {
@@ -53,58 +37,34 @@ func NewEtcd() *EtcdStore {
 		panic(err)
 	}
 
+	fmt.Println("connected to V3 - " + *etcdHost1)
+
 	es := EtcdStore{
 		KV:  clientv3.NewKV(cli),
 		CTX: context.Background(),
 		V3:  cli,
 	}
 
-	es.init()
-	es.setUpKeys()
-
 	return &es
-}
-
-func (e *EtcdStore) setUpKeys() {
-
-	e.KV.Put(e.CTX, e.RangeCountKey, "0")
-	// e.KV.Put(e.CTX, "/range/range0", "0")
-
-	log.Println("V3 initzed required keys")
-
 }
 
 func (e *EtcdStore) GetNextRange() (start int, end int) {
 
-	key := "/range/range"
-
 	for i := 0; true; i++ {
-
-		r, _ := e.KV.Get(e.CTX, fmt.Sprintf("%s%d", key, i))
-		log.Println(r.Count)
-
-		iKey := fmt.Sprintf("%s%d", key, i)
-
+		key := "/range/range"
+		iKey := fmt.Sprintf("%s-%d", key, i)
+		r, _ := e.KV.Get(e.CTX, iKey)
 		if r.Count == 0 {
 			e.KV.Put(e.CTX, iKey, "locked")
 			e.RangeCountKey = iKey + "/counter"
-			return next100Range(i)
+			return nextMillionRange(i)
 		}
-
 	}
-
 	return
-
 }
 
-func next100Range(r int) (int, int) {
-
-	s := ((r * 100) + 1)
-	e := ((s + 100) - 1)
-
+func nextMillionRange(r int) (s int, e int) {
+	s = ((r * 1000000) + 1)
+	e = ((s + 1000000) - 1)
 	return s, e
-}
-
-func (e *EtcdStore) Commit(head int) {
-	e.KV.Put(e.CTX, e.RangeCountKey, fmt.Sprint(head))
 }

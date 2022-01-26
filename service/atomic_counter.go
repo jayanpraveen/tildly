@@ -7,6 +7,7 @@ import (
 
 	"github.com/jayanpraveen/tildly/datastore"
 	cli "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
 type atomicCounter struct {
@@ -33,26 +34,47 @@ type PrevModRevision struct {
 
 func (a *atomicCounter) next() int {
 
+	if a.min >= a.max {
+		a.min, a.max = a.etcd.GetNextRange()
+	}
+
 	kv := cli.NewKV(a.etcd.V3)
 	key := a.etcd.RangeCountKey
 	txn := kv.Txn(a.etcd.V3.Ctx())
 
-	res, err := txn.If(cli.Compare(cli.ModRevision(key), "=", a.modRev.ModRevision)).
-		Then(
-			cli.OpPut(key, a.incCount()),
-			cli.OpGet(key),
-		).
-		Commit()
+	s, _ := concurrency.NewSession(a.etcd.V3)
+	defer s.Close()
 
-	if err != nil {
-		panic(err)
-	}
-	if !res.Succeeded {
-		log.Println("A newer ModRevision exists.")
-		return 0
-	}
+	l := concurrency.NewMutex(s, "/key-lock")
 
-	a.setModRevision(res.Responses[1].GetResponseRange().Kvs[0].ModRevision)
+	{
+		// Locking
+		if err := l.Lock(a.etcd.CTX); err != nil {
+			panic(err)
+		}
+
+		res, err := txn.If(cli.Compare(cli.ModRevision(key), "=", a.modRev.ModRevision)).
+			Then(
+				cli.OpPut(key, a.incCount()),
+				cli.OpGet(key),
+			).
+			Commit()
+
+		if err != nil {
+			panic(err)
+		}
+		if !res.Succeeded {
+			log.Println("A newer ModRevision exists.")
+			return 0
+		}
+
+		a.setModRevision(res.Responses[1].GetResponseRange().Kvs[0].ModRevision)
+
+		// Unlocking
+		if err := l.Unlock(a.etcd.CTX); err != nil {
+			panic(err)
+		}
+	}
 
 	return a.min
 }
@@ -74,5 +96,4 @@ func (a *atomicCounter) setModRevision(mr int64) {
 
 func (a *atomicCounter) DisplayCurrentRange() string {
 	return fmt.Sprintf("%d-%d", a.min, a.max)
-
 }

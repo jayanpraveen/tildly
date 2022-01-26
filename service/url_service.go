@@ -30,7 +30,7 @@ func NewUrlService(uc UrlCache, es *datastore.EtcdStore) *UrlService {
 func (s *UrlService) generateHash(longUrl string) (hash string) {
 	md5hash := md5.New()
 	md5hash.Write([]byte(fmt.Sprintf("%d_%s", s.AC.next(), longUrl)))
-	return hex.EncodeToString(md5hash.Sum(nil))[:6]
+	return hex.EncodeToString(md5hash.Sum(nil))[:7]
 }
 
 func (s *UrlService) SaveUrl(longUrl string) error {

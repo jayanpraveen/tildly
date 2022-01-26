@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,10 +25,15 @@ func (rtr *router) RunRouter() *mux.Router {
 	r := rtr.srv.Mux
 	sr := r.PathPrefix("/api").Subrouter()
 
+	etcd := datastore.NewEtcd()
 	rd := datastore.DialRedisClient()
 	ch := service.NewCacheRepo(rd)
-	us := service.NewUrlService(ch, datastore.NewEtcd())
+	us := service.NewUrlService(ch, etcd)
 	uh := NewUrlHandler(us)
+
+	r.HandleFunc("/count", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, us.AC.DisplayCurrentRange())
+	})
 
 	r.HandleFunc("/", uh.handleIndex())
 	sr.HandleFunc("/longUrl", uh.handleLongUrl()).Methods(http.MethodPost)

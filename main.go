@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -18,6 +19,10 @@ func main() {
 }
 
 func run() error {
+
+	port := flag.String("port", "8080", "http port")
+	flag.Parse()
+
 	srv, err := server.NewServer(mux.NewRouter())
 	if err != nil {
 		return err
@@ -27,5 +32,5 @@ func run() error {
 
 	router := rtr.RunRouter()
 
-	return http.ListenAndServe(":8080", router)
+	return http.ListenAndServe(fmt.Sprintf(":%s", *port), router)
 }

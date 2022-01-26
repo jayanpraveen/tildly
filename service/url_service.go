@@ -12,7 +12,7 @@ import (
 
 type UrlService struct {
 	cache UrlCache
-	ac    *atomicCounter
+	AC    *atomicCounter
 }
 
 type UrlRepository interface {
@@ -23,13 +23,13 @@ type UrlRepository interface {
 func NewUrlService(uc UrlCache, es *datastore.EtcdStore) *UrlService {
 	return &UrlService{
 		cache: uc,
-		ac:    NewAtomicCounter(es),
+		AC:    NewAtomicCounter(es),
 	}
 }
 
 func (s *UrlService) generateHash(longUrl string) (hash string) {
 	md5hash := md5.New()
-	md5hash.Write([]byte(fmt.Sprintf("%d_%s", s.ac.next(), longUrl)))
+	md5hash.Write([]byte(fmt.Sprintf("%d_%s", s.AC.next(), longUrl)))
 	return hex.EncodeToString(md5hash.Sum(nil))[:6]
 }
 

@@ -67,30 +67,42 @@ func NewEtcd() *EtcdStore {
 
 func (e *EtcdStore) setUpKeys() {
 
-	e.KV.Put(e.CTX, e.rangeLockSwitch, UNLOCK)
-
-	go e.watchOnLock()
-
 	e.KV.Put(e.CTX, e.RangeCountKey, "0")
+	// e.KV.Put(e.CTX, "/range/range0", "0")
 
 	log.Println("V3 initzed required keys")
 
 }
 
-func (e *EtcdStore) watchOnLock() {
+func (e *EtcdStore) GetNextRange() (start int, end int) {
 
-	watchChan := e.V3.Watch(e.CTX, e.rangeLockSwitch)
+	key := "/range/range"
 
-	for watchResp := range watchChan {
-		for _, event := range watchResp.Events {
-			fmt.Printf("[Event received]: %s executed on %q with value %q\n", event.Type, event.Kv.Key, event.Kv.Value)
-			e.lock = string(event.Kv.Value)
+	for i := 0; true; i++ {
+
+		r, _ := e.KV.Get(e.CTX, fmt.Sprintf("%s%d", key, i))
+		log.Println(r.Count)
+
+		iKey := fmt.Sprintf("%s%d", key, i)
+
+		if r.Count == 0 {
+			e.KV.Put(e.CTX, iKey, "locked")
+			e.RangeCountKey = iKey + "/counter"
+			return next100Range(i)
 		}
+
 	}
+
+	return
+
 }
 
-func (e *EtcdStore) GetNextRange() (int, int) {
-	return 0, 100
+func next100Range(r int) (int, int) {
+
+	s := ((r * 100) + 1)
+	e := ((s + 100) - 1)
+
+	return s, e
 }
 
 func (e *EtcdStore) Commit(head int) {

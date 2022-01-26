@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -34,10 +35,7 @@ func (a *atomicCounter) next() int {
 
 	kv := cli.NewKV(a.etcd.V3)
 	key := a.etcd.RangeCountKey
-
 	txn := kv.Txn(a.etcd.V3.Ctx())
-
-	a.setModRevision(a.modRev.ModRevision)
 
 	res, err := txn.If(cli.Compare(cli.ModRevision(key), "=", a.modRev.ModRevision)).
 		Then(
@@ -66,13 +64,15 @@ func (a *atomicCounter) incCount() string {
 
 func (a *atomicCounter) setModRevision(mr int64) {
 
-	// this sets the lastest ModRevision,
-	// reason: useful when working locally where you restart the etcd server muliple times
-	// with old "/range/counter" still existing.
 	if a.modRev.ModRevision == 0 {
 		res, _ := a.etcd.KV.Get(a.etcd.CTX, a.etcd.RangeCountKey)
 		mr = res.Kvs[0].ModRevision
 	}
 
 	a.modRev.ModRevision = mr
+}
+
+func (a *atomicCounter) DisplayCurrentRange() string {
+	return fmt.Sprintf("%d-%d", a.min, a.max)
+
 }

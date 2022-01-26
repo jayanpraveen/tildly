@@ -1,11 +1,20 @@
-.PHONY: clean test build tidy tildly etcd
-
 BINARY_NAME=tildly
 
 all: test build tildly
 
+help :
+	@echo "run         : runs the app in port 8080"
+	@echo "test        : runs tests & generaters report."
+	@echo "build       : builds the binary"
+	@echo "etcd        : starts etcd cluster"
+	@echo "etcd-list   : displays the available etcd nodes"
+
+
 tidy: go.mod
 	go mod tidy -v
+
+run:
+	go run main.go -port=8080
 
 test:
 	go test -v -coverpkg=./... -coverprofile=coverage.out ./...
@@ -48,3 +57,5 @@ etcd: Procfile
 	cd etcd
 	echo "etcd: starting local multi-member cluster with 3 nodes"
 	goreman -f Procfile start
+
+.PHONY: clean test build tidy tildly etcd help

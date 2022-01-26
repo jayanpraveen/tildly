@@ -9,17 +9,26 @@ tildly is a simple yet efficient url-shortner which guarantees a unique short ur
 
 ## Implementation
 
-The hash (or the short-url) is generated with a 'counter value' prefixed to the orginal request which increments after each use, by this way every hash is unique.
+When an application instance connects to etcd a new counter range is assigned to it. For example when instance-1
+and instance-2 connect to etcd, first a million keys is assigned to instance-1 and the next million keys is assigned
+to instance-2.The hash (or the short-url) is generated with a 'counter value' prefixed to the orginal request which
+increments after each use, by this way every hash is unique.
 
 ### Atomicity
 
-Each counter increment is atomic and no two instances can share the same 'counter value' for generating the hash. This is achieved using
-[transactions in etcd](https://etcd.io/docs/v3.5/learning/api/#transaction) and by comparing the `ModRevision` value before each increment.
+Each counter increment is atomic and no two hashes can share the same 'counter value'. This is achieved using
+[transactions in etcd](https://etcd.io/docs/v3.5/learning/api/#transaction) and by comparing the `ModRevision`
+value before each increment.
 
-> #### From the etcd docs
->
-> A transaction is an atomic If/Then/Else construct over the key-value store... Transactions can be used for protecting keys from unintended concurrent updates, building compare-and-swap operations, and developing higher-level concurrency control.
+## Running multiple instances
 
-## Known issues
+Run multiple instaces of the appliction with the `-port` flag
 
-In case of the `ModRevision`'s do not match, the system fails silenty without retrying.
+```makefile
+go run main.go -port=8080
+.
+.
+```
+
+To run a multi-member etcd cluster and to test fault tolerance refer [this](https://etcd.io/docs/v3.5/dev-guide/local_cluster/).
+or run `make etcd`

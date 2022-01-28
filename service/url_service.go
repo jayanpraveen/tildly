@@ -16,7 +16,7 @@ type UrlService struct {
 }
 
 type UrlRepository interface {
-	SaveUrl(longUrl string) error
+	SaveUrl(longUrl string, expireAt int64) error
 	GetUrlByHash(hash string) (*m.Url, error)
 }
 
@@ -33,14 +33,15 @@ func (s *UrlService) generateHash(longUrl string) (hash string) {
 	return hex.EncodeToString(md5hash.Sum(nil))[:7]
 }
 
-func (s *UrlService) SaveUrl(longUrl string) error {
+func (s *UrlService) SaveUrl(longUrl string, exipreAt int64) error {
 
 	hash := s.generateHash(longUrl)
 
 	u := m.Url{
 		Hash:      hash,
 		LongUrl:   longUrl,
-		CreatedAt: time.Now().Format("2006-01-02 15:04:05.000000"),
+		CreatedAt: time.Now().Unix(),
+		ExipreAt:  exipreAt,
 	}
 
 	// Save to cache, db...
@@ -50,15 +51,10 @@ func (s *UrlService) SaveUrl(longUrl string) error {
 
 }
 
-func (s *UrlService) GetUrlByHash(hash string) (*m.Url, error) {
-
-	var u *m.Url
-
-	u, err := s.cache.GetLongUrl(hash)
-
-	if err != nil {
+func (s *UrlService) GetUrlByHash(hash string) (u *m.Url, err error) {
+	u, err = s.cache.GetLongUrl(hash)
+	if u.ExipreAt != 0 && u.ExipreAt > time.Now().Unix() {
 		return nil, err
 	}
-
-	return u, nil
+	return u, err
 }

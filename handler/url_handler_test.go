@@ -50,12 +50,12 @@ func assertEquals(t *testing.T, exp interface{}, act interface{}) {
 }
 
 type MockService struct {
-	SaveUrlFunc      func(longUrl string) error
+	SaveUrlFunc      func(longUrl string, expireAt int64) error
 	GetUrlByHashFunc func(hash string) (*m.Url, error)
 }
 
-func (m *MockService) SaveUrl(longUrl string) error {
-	return m.SaveUrlFunc(longUrl)
+func (m *MockService) SaveUrl(longUrl string, exipreAt int64) error {
+	return m.SaveUrlFunc(longUrl, 1257894000)
 }
 
 func (m *MockService) GetUrlByHash(hash string) (*m.Url, error) {
@@ -80,7 +80,7 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("post valid url", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string) error {
+			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
 				return nil
 			},
 		}
@@ -104,7 +104,7 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("post invalid url", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string) error {
+			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
 				return nil
 			},
 		}
@@ -133,7 +133,7 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("post invalid JSON", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string) error {
+			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
 				return nil
 			},
 		}
@@ -156,7 +156,7 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("returns interal server error", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string) error {
+			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
 				return fmt.Errorf("Failed to save url")
 			},
 		}
@@ -188,7 +188,7 @@ func Test_handleShortUrl(t *testing.T) {
 				return &m.Url{
 					Hash:      "XikHsqW",
 					LongUrl:   "https://go.dev",
-					CreatedAt: "2009-11-10 23:00:00.000000",
+					CreatedAt: 1257894000,
 				}, nil
 			},
 		}

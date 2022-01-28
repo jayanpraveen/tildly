@@ -40,7 +40,8 @@ func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		type PostUrl struct {
-			LongUrl string `json:"longUrl"`
+			LongUrl  string `json:"longUrl"`
+			ExipreAt int64  `json:"exipreAt"`
 		}
 
 		var u PostUrl
@@ -57,7 +58,7 @@ func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 			return
 		}
 
-		if err := s.urs.SaveUrl(u.LongUrl); err != nil {
+		if err := s.urs.SaveUrl(u.LongUrl, u.ExipreAt); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			SetError(http.StatusInternalServerError, "Internal server error", w)
 			return
@@ -74,7 +75,7 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 		vars := mux.Vars(r)
 
 		u, err := s.urs.GetUrlByHash(vars["hash"])
-		if err != nil || vars["hash"] == "api" {
+		if u == nil || err != nil || vars["hash"] == "api" {
 			w.WriteHeader(http.StatusNotFound)
 			notFoundTemplate(w, r)
 			return

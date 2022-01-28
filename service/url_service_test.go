@@ -2,7 +2,6 @@ package service
 
 import (
 	"testing"
-	"time"
 
 	m "github.com/jayanpraveen/tildly/entity"
 )
@@ -13,7 +12,8 @@ var longUrl = "https://pkg.go.dev"
 var u = m.Url{
 	Hash:      hash,
 	LongUrl:   longUrl,
-	CreatedAt: time.Now().Format("2006-01-02 15:04:05.000000"),
+	CreatedAt: 1257894000,
+	ExipreAt:  1357894000,
 }
 
 type MockCacheRepo struct {

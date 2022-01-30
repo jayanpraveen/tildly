@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/jayanpraveen/tildly/datastore"
@@ -62,10 +61,6 @@ func (a *atomicCounter) next() int {
 
 		if err != nil {
 			panic(err)
-		}
-		if !res.Succeeded {
-			log.Println("A newer ModRevision exists.")
-			return 0
 		}
 
 		a.setModRevision(res.Responses[1].GetResponseRange().Kvs[0].ModRevision)

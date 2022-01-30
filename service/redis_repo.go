@@ -8,11 +8,6 @@ import (
 	m "github.com/jayanpraveen/tildly/entity"
 )
 
-type UrlCache interface {
-	SetLongUrl(url *m.Url) error
-	GetLongUrl(hash string) (*m.Url, error)
-}
-
 // CacheRepo implements the interface UrlCache
 type CacheRepo struct {
 	cache *cache.Cache
@@ -24,7 +19,7 @@ func NewCacheRepo(c *cache.Cache) *CacheRepo {
 	}
 }
 
-func (c *CacheRepo) SetLongUrl(u *m.Url) error {
+func (c *CacheRepo) SetUrl(u *m.Url) error {
 	ctx := context.Background()
 
 	if err := c.cache.Set(&cache.Item{
@@ -38,13 +33,11 @@ func (c *CacheRepo) SetLongUrl(u *m.Url) error {
 	return nil
 }
 
-func (c *CacheRepo) GetLongUrl(hash string) (*m.Url, error) {
+func (c *CacheRepo) GetUrl(hash string) (*m.Url, error) {
 	var u m.Url
 	ctx := context.Background()
-
 	if err := c.cache.Get(ctx, hash, &u); err != nil {
 		return nil, err
 	}
-
 	return &u, nil
 }

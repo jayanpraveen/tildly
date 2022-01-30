@@ -1,17 +1,28 @@
-FROM golang:1.17-alpine
+FROM golang:1.17-alpine AS base
 
-WORKDIR /app
+ENV GO111MODULE=on \
+	CGO_ENABLED=0 \
+	GOOS=linux \
+	GOARCH=amd64
 
-COPY go.mod ./
+WORKDIR /build
 
+COPY go.mod .
+COPY go.sum .
 RUN go mod download
-
-RUN go mod tidy
 
 COPY . .
 
-RUN go build 
+RUN go build -o tildly .
+
+WORKDIR /dist
+
+RUN cp /build/tildly .
+
+FROM scratch
+
+COPY --from=base /dist/tildly /
 
 EXPOSE 8080
 
-CMD [ "./tildly" ]
+CMD [ "/tildly" ]

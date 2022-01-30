@@ -6,7 +6,8 @@ type Url struct {
 	CreatedAt int64  `json:"createdAt"`
 	ExipreAt  int64  `json:"exipreAt"`
 }
-type UrlStore interface {
-	SaveUrl(u *Url, expireAt int64) error
-	GetUrlByHash(hash string) (*Url, error)
+
+type UrlRepo interface {
+	SetUrl(url *Url) error
+	GetUrl(hash string) (*Url, error)
 }

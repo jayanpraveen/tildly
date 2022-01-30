@@ -11,7 +11,8 @@ import (
 )
 
 type UrlService struct {
-	cache UrlCache
+	csdra Cassandra
+	cache CacheRepo
 	AC    *atomicCounter
 }
 
@@ -20,8 +21,9 @@ type UrlRepository interface {
 	GetUrlByHash(hash string) (*m.Url, error)
 }
 
-func NewUrlService(uc UrlCache, es *datastore.EtcdStore) *UrlService {
+func NewUrlService(csdra Cassandra, uc CacheRepo, es *datastore.EtcdStore) *UrlService {
 	return &UrlService{
+		csdra: csdra,
 		cache: uc,
 		AC:    NewAtomicCounter(es),
 	}
@@ -33,7 +35,7 @@ func (s *UrlService) generateHash(longUrl string) (hash string) {
 	return hex.EncodeToString(md5hash.Sum(nil))[:7]
 }
 
-func (s *UrlService) SaveUrl(longUrl string, exipreAt int64) error {
+func (s *UrlService) SaveUrl(longUrl string, exipreAt int64) (err error) {
 
 	hash := s.generateHash(longUrl)
 
@@ -44,17 +46,22 @@ func (s *UrlService) SaveUrl(longUrl string, exipreAt int64) error {
 		ExipreAt:  exipreAt,
 	}
 
-	// Save to cache, db...
-	s.cache.SetLongUrl(&u)
-
-	return nil
+	err = s.csdra.SetUrl(&u)
+	if err != nil {
+		return
+	}
+	err = s.cache.SetUrl(&u)
+	return
 
 }
 
 func (s *UrlService) GetUrlByHash(hash string) (u *m.Url, err error) {
-	u, err = s.cache.GetLongUrl(hash)
-	if u.ExipreAt != 0 && u.ExipreAt > time.Now().Unix() {
-		return nil, err
+	u, err = s.cache.GetUrl(hash)
+	if err != nil {
+		u, err = s.csdra.GetUrl(hash)
 	}
-	return u, err
+	if u.ExipreAt != 0 && u.ExipreAt > time.Now().Unix() {
+		return nil, fmt.Errorf("url expired")
+	}
+	return
 }

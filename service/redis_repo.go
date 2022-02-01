@@ -8,6 +8,11 @@ import (
 	m "github.com/jayanpraveen/tildly/entity"
 )
 
+type UrlCache interface {
+	SetUrl(url *m.Url) error
+	GetUrl(hash string) (*m.Url, error)
+}
+
 // CacheRepo implements the interface UrlCache
 type CacheRepo struct {
 	cache *cache.Cache

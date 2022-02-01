@@ -9,6 +9,10 @@ import (
 	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
+type AtmoicCounterRepo interface {
+	next() int
+	DisplayCurrentRange() string
+}
 type atomicCounter struct {
 	min    int
 	max    int
@@ -17,9 +21,7 @@ type atomicCounter struct {
 }
 
 func NewAtomicCounter(etcd *datastore.EtcdStore) *atomicCounter {
-
 	min, max := etcd.GetNextRange()
-
 	return &atomicCounter{
 		min:  min,
 		max:  max,

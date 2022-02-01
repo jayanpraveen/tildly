@@ -20,15 +20,27 @@ Each counter increment is atomic and no two hashes can share the same 'counter v
 [transactions in etcd](https://etcd.io/docs/v3.5/learning/api/#transaction) and by comparing the `ModRevision`
 value before each increment.
 
-## Running multiple instances
+## Running locally
 
-Run multiple instaces of the appliction with the `-port` flag
+Run multiple instaces of the appliction with the `-port` flag, the default is 8080.
+`-rf` denotes the replication factor for cassandra, the default is 3.
 
 ```makefile
-go run main.go -port=8080
-.
-.
+go run main.go -port=8080 -rf=3
+go run main.go -port=8081 -rf=3
+go run main.go -port=8082 -rf=3
+. ...
 ```
 
 To run a multi-member etcd cluster and to test fault tolerance refer [this](https://etcd.io/docs/v3.5/dev-guide/local_cluster/).
 or run `make etcd`
+
+## Using Docker
+
+using docker compose:
+
+```docker
+docker-compose up -d
+```
+
+This spins the application with 3 etcd and cassandra instances.

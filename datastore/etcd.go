@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -25,19 +26,21 @@ type EtcdStore struct {
 
 func NewEtcd() *EtcdStore {
 
-	etcdHost1 := flag.String("infra1", "http://0.0.0.0:2379", "V3 host-1")
+	etcdHost1 := flag.String("infra1", "http://etcd0:2379", "V3 host-1")
+	etcdHost2 := flag.String("infra2", "http://etcd1:22379", "V3 host-1")
+	etcdHost3 := flag.String("infra3", "http://etcd2:32379", "V3 host-1")
 	flag.Parse()
-	fmt.Println("connecting to V3 - " + *etcdHost1)
+	log.Println("connecting to V3 - ", *etcdHost1, *etcdHost2, *etcdHost3)
 
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{*etcdHost1},
+		Endpoints:   []string{*etcdHost1, *etcdHost2, *etcdHost3},
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("connected to V3 - " + *etcdHost1)
+	log.Println("connected to V3 - ", *etcdHost1, *etcdHost2, *etcdHost3)
 
 	es := EtcdStore{
 		KV:  clientv3.NewKV(cli),

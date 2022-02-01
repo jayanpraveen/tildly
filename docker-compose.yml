@@ -1,0 +1,91 @@
+version: "3.9"
+services:
+  web:
+    container_name: tildly-web
+    hostname: tildly-web
+    build: .
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+      - etcd0
+      - etcd1
+      - etcd2
+      - cassandra0
+      - cassandra1
+      - cassandra2
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: "redis:alpine"
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+
+  etcd0:
+    image: 'bitnami/etcd:latest'
+    environment:
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd0:2379
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd0_data:/etcd0
+
+  etcd1:
+    image: 'bitnami/etcd:latest'
+    environment:
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd1:22379
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd1_data:/etcd1
+
+  etcd2:
+    image: 'bitnami/etcd:latest'
+    environment:
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd2:32379
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd2_data:/etcd2
+
+  cassandra0:
+    container_name: cassandra0
+    hostname: cassandra0
+    image: cassandra:latest
+    volumes:
+      - cassandra0_data:/csdra
+    environment:
+      - CASSANDRA_SEEDS=cassandra0,cassandra1,cassandra2
+      - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+
+  cassandra1:
+    container_name: cassandra1
+    hostname: cassandra1
+    image: cassandra:latest
+    volumes:
+      - cassandra1_data:/csdra
+    environment:
+      - CASSANDRA_SEEDS=cassandra0,cassandra1,cassandra2
+      - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+
+  cassandra2:
+    container_name: cassandra2
+    hostname: cassandra2
+    image: cassandra:latest
+    volumes:
+      - cassandra2_data:/csdra
+    environment:
+      - CASSANDRA_SEEDS=cassandra0,cassandra1,cassandra2
+      - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+
+volumes:
+  cassandra0_data:
+    driver: local
+  cassandra1_data:
+    driver: local
+  cassandra2_data:
+    driver: local
+  etcd0_data:
+    driver: local
+  etcd1_data:
+    driver: local
+  etcd2_data:
+    driver: local

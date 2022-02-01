@@ -22,6 +22,7 @@ RUN cp /build/tildly .
 FROM scratch
 
 COPY --from=base /dist/tildly /
+COPY ./handler/templates/ /handler/templates
 
 EXPOSE 8080
 

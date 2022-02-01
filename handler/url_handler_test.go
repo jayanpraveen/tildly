@@ -50,11 +50,11 @@ func assertEquals(t *testing.T, exp interface{}, act interface{}) {
 }
 
 type MockService struct {
-	SaveUrlFunc      func(longUrl string, expireAt int64) error
+	SaveUrlFunc      func(longUrl string, expireAt int64) (string, error)
 	GetUrlByHashFunc func(hash string) (*m.Url, error)
 }
 
-func (m *MockService) SaveUrl(longUrl string, exipreAt int64) error {
+func (m *MockService) SaveUrl(longUrl string, exipreAt int64) (string, error) {
 	return m.SaveUrlFunc(longUrl, 1257894000)
 }
 
@@ -80,15 +80,15 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("post valid url", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
-				return nil
+			SaveUrlFunc: func(longUrl string, exipreAt int64) (string, error) {
+				return "UIOP", nil
 			},
 		}
 		uh := NewUrlHandler(srv)
 		h := uh.handleLongUrl()
 
 		expSC := http.StatusCreated
-		expBody := "tildly url created!"
+		expBody := "short-url: UIOP"
 
 		method := http.MethodPost
 		url := "/api/longUrl"
@@ -104,8 +104,8 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("post invalid url", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
-				return nil
+			SaveUrlFunc: func(longUrl string, exipreAt int64) (string, error) {
+				return "", fmt.Errorf("")
 			},
 		}
 		uh := NewUrlHandler(srv)
@@ -133,8 +133,8 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("post invalid JSON", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
-				return nil
+			SaveUrlFunc: func(longUrl string, exipreAt int64) (string, error) {
+				return "", nil
 			},
 		}
 		uh := NewUrlHandler(srv)
@@ -156,8 +156,8 @@ func Test_handleLongUrl(t *testing.T) {
 
 	t.Run("returns interal server error", func(t *testing.T) {
 		srv := &MockService{
-			SaveUrlFunc: func(longUrl string, exipreAt int64) error {
-				return fmt.Errorf("Failed to save url")
+			SaveUrlFunc: func(longUrl string, exipreAt int64) (string, error) {
+				return "", fmt.Errorf("Failed to save url")
 			},
 		}
 

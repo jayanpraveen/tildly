@@ -58,14 +58,15 @@ func (s *UrlHandler) handleLongUrl() http.HandlerFunc {
 			return
 		}
 
-		if err := s.urs.SaveUrl(u.LongUrl, u.ExipreAt); err != nil {
+		if msg, err := s.urs.SaveUrl(u.LongUrl, u.ExipreAt); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			SetError(http.StatusInternalServerError, "Internal server error", w)
+			SetError(http.StatusInternalServerError, msg, w)
 			return
+		} else {
+			w.WriteHeader(http.StatusCreated)
+			fmt.Fprintf(w, "short-url: %s", msg)
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, "tildly url created!")
 	}
 }
 
@@ -86,6 +87,6 @@ func (s *UrlHandler) handleShortUrl() http.HandlerFunc {
 }
 
 func notFoundTemplate(w http.ResponseWriter, r *http.Request) {
-	t := template.Must(template.ParseFiles("./handler/NotFound.html"))
+	t := template.Must(template.ParseFiles("./handler/templates/NotFound.html"))
 	t.Execute(w, nil)
 }

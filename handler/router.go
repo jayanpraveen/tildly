@@ -27,7 +27,7 @@ func (rtr *router) RunRouter() *mux.Router {
 	etcd := datastore.NewEtcd()
 	ch := service.NewCacheRepo(datastore.DialRedisClient())
 	csdra := service.NewCassandra(datastore.DialCassandra())
-	us := service.NewUrlService(*csdra, *ch, etcd)
+	us := service.NewUrlService(csdra, ch, etcd)
 	uh := NewUrlHandler(us)
 
 	r.HandleFunc("/count", func(w http.ResponseWriter, r *http.Request) {

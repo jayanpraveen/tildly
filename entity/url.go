@@ -6,8 +6,3 @@ type Url struct {
 	CreatedAt int64  `json:"createdAt"`
 	ExipreAt  int64  `json:"exipreAt"`
 }
-
-type UrlRepo interface {
-	SetUrl(url *Url) error
-	GetUrl(hash string) (*Url, error)
-}

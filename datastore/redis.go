@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"log"
 	"time"
 
 	"github.com/go-redis/cache/v8"
@@ -10,8 +11,10 @@ import (
 func DialRedisClient() *cache.Cache {
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: "redis:6379",
 	})
+
+	log.Print("connected to ", rdb.Options().Addr)
 
 	rch := cache.New(&cache.Options{
 		Redis:      rdb,

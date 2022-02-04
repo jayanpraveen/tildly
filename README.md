@@ -5,7 +5,7 @@
 	</h1>
 </div>
 
-tildly is a simple yet efficient url-shortner which guarantees a unique short url for each request.
+tildly is a simple yet efficient url-shortner which gives a unique short url for each request.
 
 ## Implementation
 

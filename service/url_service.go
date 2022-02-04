@@ -2,9 +2,11 @@ package service
 
 import (
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jayanpraveen/tildly/datastore"
@@ -30,14 +32,26 @@ func NewUrlService(csdra UrlCsdra, uc UrlCache, es *datastore.EtcdStore) *UrlSer
 	}
 }
 
-func (s *UrlService) generateHash(longUrl string) (msg string) {
+func genMD5(str string) string {
 	md5hash := md5.New()
-	md5hash.Write([]byte(fmt.Sprintf("%d_%s", s.AC.next(), longUrl)))
-	return hex.EncodeToString(md5hash.Sum(nil))[:7]
+	md5hash.Write([]byte(str))
+	return hex.EncodeToString(md5hash.Sum(nil))
+}
+
+func genBase64(str string) string {
+	return base64.StdEncoding.EncodeToString([]byte(str))
+}
+
+func (s *UrlService) genHash(longUrl string) (msg string) {
+	c := strconv.Itoa(s.AC.next())
+	p1 := genBase64(genMD5(fmt.Sprintf("%s_%s", longUrl, c)))
+	p2 := genBase64(genMD5(c))
+	return p1[:3] + p2[:4]
 }
 
 func (s *UrlService) SaveUrl(longUrl string, exipreAt int64) (hash string, err error) {
-	hash = s.generateHash(longUrl)
+	hash = s.genHash(longUrl)
+
 	u := m.Url{
 		Hash:      hash,
 		LongUrl:   longUrl,

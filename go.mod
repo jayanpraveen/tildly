@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/go-redis/cache/v8 v8.4.3
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/gocql/gocql v0.0.0-20211222173705-d73e6b1002a7
 	github.com/google/go-cmp v0.5.6
 	github.com/gorilla/mux v1.8.0
 	go.etcd.io/etcd/client/v3 v3.5.1
@@ -15,7 +16,6 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/gocql/gocql v0.0.0-20211222173705-d73e6b1002a7 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
